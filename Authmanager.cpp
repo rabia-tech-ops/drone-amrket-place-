@@ -1,88 +1,202 @@
-#ifndef AUTHMANAGER_H
-#define AUTHMANAGER_H
-
-#include <string>
-#include <fstream>   // ✅ ADDED for file handling
+#include "AuthManager.h"
+#include <iostream>
+#include <fstream>   // ✅ ADDED
 
 using namespace std;
 
 // ==========================================
-// Customer Structure
+// Constructor
 // ==========================================
 
-struct CustomerAccount {
-    string name;
-    string password;
-    double wallet = 0;
-    string vip;
-};
+AuthManager::AuthManager() {
+
+    adminUser = "admin";
+    adminPass = "admin123";
+
+    opUser = "operator";
+    opPass = "op123";
+
+    loggedInIndex = -1;
+    totalCustomers = 0;
+
+    // ======================================
+    // 🔥 LOAD DATA FROM FILE (ADDED)
+    // ======================================
+    loadCustomersFromFile();
+
+    // If file is empty, add default user
+    if (totalCustomers == 0) {
+
+        customers[0].name = "Rabia";
+        customers[0].password = "1234";
+        customers[0].wallet = 500000;
+        customers[0].vip = "Gold Member";
+
+        totalCustomers = 1;   // ✅ FIXED (better than ++)
+    }
+}
 
 // ==========================================
-// AuthManager Class
-// Handles Login & Registration
+// Admin Login
 // ==========================================
 
-class AuthManager {
+bool AuthManager::loginAdmin(string u, string p) {
+    return (u == adminUser && p == adminPass);
+}
 
-private:
+// ==========================================
+// Operator Login
+// ==========================================
 
-    
+bool AuthManager::loginOperator(string u, string p) {
+    return (u == opUser && p == opPass);
+}
 
-    // Customer Array
-    CustomerAccount customers[100];
+// ==========================================
+// Customer Login
+// ==========================================
 
-    // Total Customers
-    int totalCustomers;
+bool AuthManager::loginCustomer(string u, string p) {
 
-    // Logged in customer index
-    int loggedInIndex;
+    for (int i = 0; i < totalCustomers; i++) {
 
-    // ======================================
-    // 🔥 FILE HANDLING (ADDED ONLY)
-    // ======================================
-    string customerFile = "customers.txt";
+        if (customers[i].name == u &&
+            customers[i].password == p) {
 
-public:
-    // Admin Login
-    string adminUser;
-    string adminPass;
+            loggedInIndex = i;
+            return true;
+        }
+    }
 
-    // Operator Login
-    string opUser;
-    string opPass;
+    return false;
+}
 
-    // Constructor
-    AuthManager();
+// ==========================================
+// Register Customer
+// ==========================================
 
-    // Login Functions
-    bool loginAdmin(string u, string p);
-    bool loginOperator(string u, string p);
-    bool loginCustomer(string u, string p);
-
-    // Register New Customer
-    bool registerCustomer(string u, string p);
-
-    // Forgot Password
-    bool forgotPassword(string username);
-
-    // Get Current Customer
-    CustomerAccount* getCurrentCustomer();
-
-    // Logout
-    void logoutCustomer();
-
-    // Get Customer List
-    CustomerAccount* getAllCustomers();
-
-    // Get Total Customers
-    int getTotalCustomers();
+bool AuthManager::registerCustomer(string u, string p) {
 
     // ======================================
-    // 🔥 FILE FUNCTIONS (ADDED ONLY)
+    // 🔥 FIX: PREVENT ARRAY OVERFLOW
     // ======================================
+    if (totalCustomers >= 100) {
+        cout << "Customer limit reached!\n";
+        return false;
+    }
 
-    void saveCustomersToFile();
-    void loadCustomersFromFile();
-};
+    customers[totalCustomers].name = u;
+    customers[totalCustomers].password = p;
+    customers[totalCustomers].wallet = 100000;
+    customers[totalCustomers].vip = "Standard";
 
-#endif
+    loggedInIndex = totalCustomers;
+
+    totalCustomers++;
+
+    // ======================================
+    // 🔥 SAVE AFTER REGISTER (ADDED)
+    // ======================================
+    saveCustomersToFile();
+
+    return true;
+}
+
+// ==========================================
+// Forgot Password
+// ==========================================
+
+bool AuthManager::forgotPassword(string username) {
+
+    for (int i = 0; i < totalCustomers; i++) {
+
+        if (customers[i].name == username) {
+
+            cout << "Your password is: "
+                << customers[i].password << endl;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// ==========================================
+// Get Current Customer
+// ==========================================
+
+CustomerAccount* AuthManager::getCurrentCustomer() {
+
+    if (loggedInIndex < 0) {
+        return NULL;
+    }
+
+    return &customers[loggedInIndex];
+}
+
+// ==========================================
+// Logout Customer
+// ==========================================
+
+void AuthManager::logoutCustomer() {
+    loggedInIndex = -1;
+}
+
+// ==========================================
+// Return Customer Array
+// ==========================================
+
+CustomerAccount* AuthManager::getAllCustomers() {
+    return customers;
+}
+
+// ==========================================
+// Total Customers
+// ==========================================
+
+int AuthManager::getTotalCustomers() {
+    return totalCustomers;
+}
+
+// ==========================================
+// 🔥 SAVE TO FILE (ADDED)
+// ==========================================
+
+void AuthManager::saveCustomersToFile() {
+
+    ofstream file("customers.txt");
+
+    for (int i = 0; i < totalCustomers; i++) {
+
+        file << customers[i].name << " "
+            << customers[i].password << " "
+            << customers[i].wallet << " "
+            << customers[i].vip << endl;
+    }
+
+    file.close();
+}
+
+// ==========================================
+// 🔥 LOAD FROM FILE (ADDED)
+// ==========================================
+
+void AuthManager::loadCustomersFromFile() {
+
+    ifstream file("customers.txt");
+
+    if (!file.is_open()) return;
+
+    totalCustomers = 0;
+
+    while (file >> customers[totalCustomers].name
+        >> customers[totalCustomers].password
+        >> customers[totalCustomers].wallet
+        >> customers[totalCustomers].vip) {
+
+        totalCustomers++;
+    }
+
+    file.close();
+}
