@@ -150,7 +150,6 @@ Open the project in Visual Studio
 Select x64 Debug Mode
 Build Solution
 Run the Project
-
 # 🎥 Demo Video
 
 [![Watch Demo](https://www.linkedin.com/posts/rabia-ozair-a41247382_cplusplus-cpp-oop-activity-7462005678723837952-dmzf?utm_source=share&utm_medium=member_desktop&rcm=ACoAAF5dMREBcu4iVTQ_G64z4vKtkDMkEz9FbsQ)
